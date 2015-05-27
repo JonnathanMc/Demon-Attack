@@ -1,10 +1,8 @@
-﻿Build started 12/05/2015 16:31:36.
+﻿Build started 27/05/2015 10:04:11.
      1>Project "C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Demon Attack\Demon Attack.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /analyze- /errorReport:prompt /clr:nostdlib Source.cpp
          Source.cpp
-     1>Source.cpp(160): warning C4566: character represented by universal-character-name '\u2588' cannot be represented in the current code page (1252)
-     1>Source.cpp(160): warning C4566: character represented by universal-character-name '\u2584' cannot be represented in the current code page (1252)
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Debug\Demon Attack.exe" /INCREMENTAL /NOLOGO /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Debug\Demon Attack.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 Debug\Source.obj
          "Debug\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
@@ -13,4 +11,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.18
+Time Elapsed 00:00:01.22

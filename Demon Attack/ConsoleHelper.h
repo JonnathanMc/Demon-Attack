@@ -2,7 +2,6 @@
 #pragma managed
 using namespace System;
 
-
 ref class ConsoleHelper
 {
 
@@ -42,5 +41,4 @@ public:
 		ImprimirASCIIExtended(str);
 	}
 	
-
 };
