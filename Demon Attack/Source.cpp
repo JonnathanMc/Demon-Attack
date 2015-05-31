@@ -23,10 +23,14 @@ struct Bala{
 
 #define QUANTIDADE_BALAS 10
 
+#define LARGURA_TELA 150
+#define ALTURA_TELA 48
+
 void Logo();
 void Menu(int escolhaMenu);
 int MenuOpcoesSelecao(int opcao, ConsoleKeyInfo tecla);
 void CorConsolePadrao();
+void barraInferior();
 
 
 int main()
@@ -35,23 +39,25 @@ int main()
 
 	int estadoJogo = ESTADO_JOGO_MENU;
 	int escolhaMenu = ESCOLHA_MENU_INICIAR;
-
-	int jogador_x = 45;
-	int jogador_y = 25;
-	
-
 	int balasAtiradas = 0, balasDestruidas =0, balasAtivas = 0;
-
-	int altura_tela, largura_tela;
-
+	
 	bool projetil_em_movimento = false;
 
-	largura_tela = 100;
-	altura_tela = 30;
+	int jogador_x = Console::WindowWidth * 0.5f;
+	int jogador_y = ALTURA_TELA-5;
 
-	Console::SetWindowSize(100, 30);
-	Console::SetBufferSize(100, 30);
+	array<String^>^ barraInferior = gcnew array<String^>(3);
+
+	for (int a = 0; a < 3; a++){
+		for (int b = 0; b < LARGURA_TELA; b++){
+			barraInferior[a] += " ";
+		}
+	}
+
+	Console::SetWindowSize(LARGURA_TELA, ALTURA_TELA);
+	Console::SetBufferSize(LARGURA_TELA, ALTURA_TELA);
 	Console::CursorVisible = false;
+
 
 	for (;;){
 		switch (estadoJogo)
@@ -101,35 +107,45 @@ int main()
 					jogador_x++;
 					
 				}
-
-				else if (tecla.Key == ConsoleKey::Spacebar)
+				else if (tecla.Key == ConsoleKey::Spacebar )
 				{
 					bala[balasAtiradas].balaEmMovimento= true;
-					bala[balasAtiradas].x = jogador_x + 1;
+					bala[balasAtiradas].x = jogador_x + 4;
 					bala[balasAtiradas].y = jogador_y - 1;
-					balasAtiradas++;
-					//Console::SetCursorPosition(10, 10);
-
+					balasAtiradas++;	
 				}
 			}
 
 			// DESENHA
-
 			CorConsolePadrao();
 
 			Console::Clear();
-			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y, ConsoleColor::Black, ConsoleColor::Magenta, "лмл");
 
-			Console::SetCursorPosition(jogador_x, jogador_y + 2);
-			Console::WriteLine(balasAtivas);
+			Console::BackgroundColor = ConsoleColor::DarkCyan;
+			Console::SetCursorPosition(0, Console::WindowHeight - 3);
+			Console::Write(barraInferior[0]);			
+			Console::BackgroundColor = ConsoleColor::DarkBlue;
+			Console::SetCursorPosition(0, Console::WindowHeight - 2);
+			Console::Write(barraInferior[1]);
+			Console::SetCursorPosition(0, Console::WindowHeight - 1);
+			Console::Write(barraInferior[2]);
+
+			Console::BackgroundColor = ConsoleColor::Black;
+			Console::ForegroundColor = ConsoleColor::Magenta;
+			ConsoleHelper::ImprimirASCIIExtended(jogador_x , jogador_y- 2,  "   л л  ");
+			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y - 1,  "  лл лл");
+			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y,      " лл   лл ");
+
+			/*Console::SetCursorPosition(jogador_x, jogador_y + 2);
+			Console::WriteLine(balasAtivas);*/
 			
 			balasAtivas = balasAtiradas - balasDestruidas;
 
 			for (int a = balasDestruidas ; a < balasAtiradas; a++){
-				Console::SetCursorPosition(jogador_x + 10, jogador_y + 2);
+				/*Console::SetCursorPosition(jogador_x + 10, jogador_y + 2);
 				Console::WriteLine(balasAtiradas);
 				Console::SetCursorPosition(jogador_x + 13, jogador_y + 2);
-				Console::WriteLine("a = " + a);
+				Console::WriteLine("a = " + a);*/
 
 				if (bala[a].balaEmMovimento){
 					bala[a].y--;
@@ -138,25 +154,22 @@ int main()
 					{
 						bala[a].balaEmMovimento = false;
 						balasDestruidas++;
-						
 					}
-					Console::SetCursorPosition(jogador_x + 2, jogador_y + 2);
-					Console::WriteLine(bala[a].x);
-					Console::SetCursorPosition(jogador_x + 6, jogador_y + 2);
-					Console::WriteLine(bala[a].y);
+					
 
+					Console::ForegroundColor = ConsoleColor::White;
 					Console::SetCursorPosition(bala[a].x, bala[a].y);
-					Console::BackgroundColor = ConsoleColor::DarkGray;
-					Console::ForegroundColor = ConsoleColor::Red;
-					Console::WriteLine("A");
+					ConsoleHelper::ImprimirASCIIExtended("л");
+					Console::SetCursorPosition(bala[a].x, bala[a].y + 1);
+					ConsoleHelper::ImprimirASCIIExtended("л");
+
+
+
 
 					CorConsolePadrao();
-					
-					
-					//ConsoleHelper::ImprimirASCIIExtended(bala[a].x, bala[a].y, ConsoleColor::DarkGray, ConsoleColor::Red, "A");
 				}
 			}
-			Threading::Thread::Sleep(32);
+			Threading::Thread::Sleep(16);
 			break;
 
 		case ESTADO_JOGO_RANKING:
@@ -181,11 +194,11 @@ int main()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Logo()
 {
-	ConsoleHelper::ImprimirASCIIExtended(15, 1, "  ____                                  _   _   _             _    ");
-	ConsoleHelper::ImprimirASCIIExtended(15, 2, " |  _ \\  ___ _ __ ___   ___  _ __      / \\ | |_| |_ __ _  ___| | __");
-	ConsoleHelper::ImprimirASCIIExtended(15, 3, " | | | |/ _ \\ '_ ` _ \\ / _ \\| '_ \\    / _ \\| __| __/ _` |/ __| |/ /");
-	ConsoleHelper::ImprimirASCIIExtended(15, 4, " | |_| |  __/ | | | | | (_) | | | |  / ___ \\ |_| || (_| | (__|   < ");
-	ConsoleHelper::ImprimirASCIIExtended(15, 5, " |____/ \\___|_| |_| |_|\\___/|_| |_| /_/   \\_\\__|\\__\\__,_|\\___|_|\\_\\");
+	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 1 , "  ____                                  _   _   _             _    ");
+	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 2, " |  _ \\  ___ _ __ ___   ___  _ __      / \\ | |_| |_ __ _  ___| | __");
+	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 3, " | | | |/ _ \\ '_ ` _ \\ / _ \\| '_ \\    / _ \\| __| __/ _` |/ __| |/ /");
+	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 4, " | |_| |  __/ | | | | | (_) | | | |  / ___ \\ |_| || (_| | (__|   < ");
+	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 5, " |____/ \\___|_| |_| |_|\\___/|_| |_| /_/   \\_\\__|\\__\\__,_|\\___|_|\\_\\");
 }
 void CorConsolePadrao()
 {
@@ -198,21 +211,21 @@ void Menu(int escolhaMenu)
 	switch (escolhaMenu)
 	{
 	case ESCOLHA_MENU_INICIAR:
-		ConsoleHelper::ImprimirASCIIExtended(43, 15, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "INICIAR");
-		ConsoleHelper::ImprimirASCIIExtended(43, 16, ConsoleColor::Black, ConsoleColor::White, "RANKING");
-		ConsoleHelper::ImprimirASCIIExtended(44, 17, ConsoleColor::Black, ConsoleColor::White, "SAIR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.45f, ALTURA_TELA * 0.45f, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "INICIAR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.45f , ALTURA_TELA * 0.45f + 1, ConsoleColor::Black, ConsoleColor::White, "RANKING");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f + 1, ALTURA_TELA * 0.45f + 2, ConsoleColor::Black, ConsoleColor::White, "SAIR");
 		break;
 
 	case ESCOLHA_MENU_RANKING:
-		ConsoleHelper::ImprimirASCIIExtended(43, 15, ConsoleColor::Black, ConsoleColor::White, "INICIAR");
-		ConsoleHelper::ImprimirASCIIExtended(43, 16, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "RANKING");
-		ConsoleHelper::ImprimirASCIIExtended(44, 17, ConsoleColor::Black, ConsoleColor::White, "SAIR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f , ALTURA_TELA * 0.45f , ConsoleColor::Black, ConsoleColor::White, "INICIAR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f, ALTURA_TELA * 0.45f + 1, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "RANKING");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f + 1, ALTURA_TELA * 0.45f + 2, ConsoleColor::Black, ConsoleColor::White, "SAIR");
 		break;
 
 	case ESCOLHA_MENU_SAIR:
-		ConsoleHelper::ImprimirASCIIExtended(43, 15, ConsoleColor::Black, ConsoleColor::White, "INICIAR");
-		ConsoleHelper::ImprimirASCIIExtended(43, 16, ConsoleColor::Black, ConsoleColor::White, "RANKING");
-		ConsoleHelper::ImprimirASCIIExtended(44, 17, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "SAIR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f, ALTURA_TELA * 0.45f , ConsoleColor::Black, ConsoleColor::White, "INICIAR");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f, ALTURA_TELA * 0.45f + 1, ConsoleColor::Black, ConsoleColor::White, "RANKING");
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f + 1, ALTURA_TELA * 0.45f + 2, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "SAIR");
 		break;
 	}
 }
@@ -233,4 +246,9 @@ int MenuOpcoesSelecao(int opcao, ConsoleKeyInfo tecla)
 	}
 
 	return opcao;
+}
+void barraInferior()
+{
+
+
 }
