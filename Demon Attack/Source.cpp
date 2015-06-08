@@ -11,8 +11,10 @@ struct Bala{
 	bool balaNoCano = true;
 };
 struct Inimigo{
-	int x, y;
-
+	bool inimigoAtivo = true;
+	int x, y, yInicial, direcaoY = 1, direcaoX = 1;
+	time_t proximaAtualizacaoInimigo = clock();
+	int vidas = 3;
 };
 
 #define ESTADO_JOGO_MENU 0
@@ -26,9 +28,9 @@ struct Inimigo{
 #define SELECTED_FONTE_COLOR ConsoleColor::Green
 #define SELECTED_BACKGROUND_COLOR ConsoleColor::Blue
 
-#define QUANTIDADE_BALAS 10
+#define QUANTIDADE_INIMIGOS 3
 
-#define LARGURA_TELA 140
+#define LARGURA_TELA 145
 #define ALTURA_TELA 70
 
 void Logo();
@@ -39,11 +41,12 @@ void barraInferior();
 
 int main()
 {
-	struct Bala bala[QUANTIDADE_BALAS], projetil;
+	struct Bala projetil;
+	struct Inimigo inimigo[QUANTIDADE_INIMIGOS];
 
-	struct Inimigo i1;
-	i1.x = 10;
-	i1.y = 30;
+
+	int pontos = 0;
+	bool noInimigo = false;
 
 	int estadoJogo = ESTADO_JOGO_MENU;
 	int escolhaMenu = ESCOLHA_MENU_INICIAR;
@@ -52,9 +55,26 @@ int main()
 	int jogador_y = ALTURA_TELA - 5;
 	Char desenho_inimigo2 = (Char)9600;
 
-	time_t proximaAtualizacaoInimigo = clock();
+	time_t  proximaAtualizacaoProjetil = clock();
 
 	array<String^>^ barraInferior = gcnew array<String^>(3);
+	
+	srand(time(NULL));
+
+
+
+	////////////////////// INICIO PROCESSAMENTO ///////////////////////////////////////////
+	inimigo[0].x = rand() % (LARGURA_TELA - 11);
+	inimigo[0].y = inimigo[0].yInicial = ALTURA_TELA * 0.5f + 14;
+	inimigo[0].direcaoX = rand() % 2;
+
+	inimigo[1].x = rand() % (LARGURA_TELA - 11);
+	inimigo[1].y = inimigo[1].yInicial = ALTURA_TELA * 0.5f;
+	inimigo[1].direcaoX = rand() % 2;
+
+	inimigo[2].x = rand() % (LARGURA_TELA - 11) ;
+	inimigo[2].y = inimigo[2].yInicial = ALTURA_TELA * 0.5f - 14;
+	inimigo[2].direcaoX = rand() % 2;
 
 	for (int a = 0; a < 3; a++){
 		for (int b = 0; b < LARGURA_TELA; b++){
@@ -87,7 +107,7 @@ int main()
 			{
 				estadoJogo = ESTADO_JOGO_GAMEPLAY;
 			}
-		
+
 			if (escolhaMenu == ESCOLHA_MENU_SAIR && tecla.Key == ConsoleKey::Enter)
 			{
 				exit(0);
@@ -112,7 +132,7 @@ int main()
 				}
 				else if (tecla.Key == ConsoleKey::Spacebar && projetil.balaEmMovimento == false)
 				{
-					
+
 					projetil.balaEmMovimento = true;
 					projetil.balaNoCano = false;
 					projetil.x = jogador_x + 4;
@@ -120,11 +140,94 @@ int main()
 				}
 			}
 
-			//INIMIGO
-			if (clock() > proximaAtualizacaoInimigo && i1.x + 13 < LARGURA_TELA){
-				i1.x++;
-				proximaAtualizacaoInimigo = clock() + 10;
+			// PROJETILLLLL ///////////////////////////////////
+			if (projetil.balaEmMovimento)
+			{
+
+				/*if (clock() > proximaAtualizacaoProjetil){
+					projetil.y -= 1;
+					proximaAtualizacaoProjetil = clock() + 50;
+				}*/
+				projetil.y -= 2;
+				
+				if (projetil.y == 0)
+				{
+					projetil.balaEmMovimento = false;
+				}
 			}
+			else
+				projetil.balaNoCano = true;
+
+			//INIMIGO // DIREЧУO: 0 -> BAIXO       1 -> RETO        2 -> CIMA
+			for (int x = 0; x < QUANTIDADE_INIMIGOS; x++){
+				
+				if (inimigo[x].x + 10 >= LARGURA_TELA){
+					inimigo[x].direcaoX = 0;
+				}
+				if (inimigo[x].x <= 1){
+					inimigo[x].direcaoX = 1;
+				}
+
+				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoX == 1){
+					inimigo[x].x++;
+					//inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
+				}
+				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoX == 0){
+					inimigo[x].x--;
+					//inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
+				}
+
+
+				///////// MOVIMENTACAO EM Y //
+
+				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoY == 0){ ///BAIXO
+					inimigo[x].y++;
+					inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
+					
+					
+				}
+
+				if (inimigo[x].direcaoY == 1){  //RETO
+					inimigo[x].direcaoY = rand() % 2;
+					
+				}
+
+				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoY == 2){  ///CIMA
+					inimigo[x].y--;
+					inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
+					
+				}
+
+				if (inimigo[x].y <= inimigo[x].yInicial - 4){
+					inimigo[x].direcaoY = 0;
+				}
+				else if (inimigo[x].y >= inimigo[x].yInicial + 4){
+					inimigo[x].direcaoY = 2;
+				}
+				
+
+				
+			}
+
+			if (projetil.balaEmMovimento){
+				for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+					if (inimigo[i].inimigoAtivo){
+						if (projetil.x >= inimigo[i].x && projetil.x <= inimigo[i].x + 9){
+							if (projetil.y <= inimigo[i].y && projetil.y >= inimigo[i].y-4){
+								
+								projetil.balaEmMovimento = false;
+								inimigo[i].vidas--;
+								pontos++;
+							
+							}
+						}
+					}	
+					if (inimigo[i].vidas <= 0)
+						inimigo[i].inimigoAtivo = false;
+				}
+			}
+			
+			
 
 			////////////////////////// DESENHA ////////////////////////////////////////////////////
 			CorConsolePadrao();
@@ -145,17 +248,10 @@ int main()
 			Console::ForegroundColor = ConsoleColor::Magenta;
 			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y - 2, "   л л  ");
 			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y - 1, "  лл лл");
-			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y,     " лл   лл ");
+			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y, " лл   лл ");
 
 			if (projetil.balaEmMovimento)
 			{
-				projetil.y--;
-				if (projetil.y == 0)
-				{
-					projetil.balaEmMovimento = false;
-					projetil.balaNoCano = true;
-
-				}
 				Console::ForegroundColor = ConsoleColor::White;
 				Console::SetCursorPosition(projetil.x, projetil.y);
 				ConsoleHelper::ImprimirASCIIExtended("л");
@@ -173,19 +269,49 @@ int main()
 			}
 
 			// DESENHA O INIMIGO
-			Console::ForegroundColor = ConsoleColor::Red;
-			Console::SetCursorPosition(i1.x, i1.y - 3);
 			
-			ConsoleHelper::ImprimirASCIIExtended("   л   л " );
-			Console::SetCursorPosition(i1.x, i1.y - 2);
-			ConsoleHelper::ImprimirASCIIExtended("  л  л  л  ");
-			Console::SetCursorPosition(i1.x, i1.y - 1);
-			ConsoleHelper::ImprimirASCIIExtended("л   л л   л ");
-			
-			Console::SetCursorPosition(i1.x, i1.y);
-			ConsoleHelper::ImprimirASCIIExtended("  л     л     ");
-			
-			Threading::Thread::Sleep(14);
+			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+				if (inimigo[i].inimigoAtivo){
+					Console::ForegroundColor = ConsoleColor::Green;
+					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 3);
+					ConsoleHelper::ImprimirASCIIExtended("    л л   ");
+					Console::ForegroundColor = ConsoleColor::Red;
+					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 2);
+					ConsoleHelper::ImprimirASCIIExtended(" ллл л ллл");
+					//Console::ForegroundColor = ConsoleColor::DarkMagenta;
+					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 1);
+					ConsoleHelper::ImprimirASCIIExtended(" л ллллл л");
+					//Console::ForegroundColor = ConsoleColor::Green;
+					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y);
+					ConsoleHelper::ImprimirASCIIExtended("    л л   ");
+				}
+			}
+			Console::SetCursorPosition(10, 10);
+			Console::Write(" " + pontos);
+		
+
+			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+				if (inimigo[i].inimigoAtivo){
+					/*Console::SetCursorPosition(inimigo[i].x - 8, inimigo[i].y - 5);
+					Console::Write("YINI: " + inimigo[i].yInicial);*/
+					Console::SetCursorPosition(inimigo[i].x + 1, inimigo[i].y - 6);
+					Console::Write("DireчуoY: " + inimigo[i].direcaoY);
+					/*Console::SetCursorPosition(inimigo[i].x - 8, inimigo[i].y - 3);
+					Console::Write("Vidas: " + inimigo[i].vidas);
+					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y-2);
+					Console::Write(inimigo[i].x);
+					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y - 1);
+					Console::Write(inimigo[i].y);
+					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y );
+					Console::Write(inimigo[i].inimigoAtivo);
+					*/
+				}
+			}
+
+
+
+
+			Threading::Thread::Sleep(16);
 			break;
 
 		case ESTADO_JOGO_RANKING:
@@ -216,7 +342,7 @@ void Logo()
 	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 5, " |____/ \\___|_| |_| |_|\\___/|_| |_| /_/   \\_\\__|\\__\\__,_|\\___|_|\\_\\");
 
 	Console::ForegroundColor = ConsoleColor::Red;
-	
+
 	/*ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f + 2, ALTURA_TELA *0.40f + 1,    " #        ##");
 	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f , ALTURA_TELA * 0.4f + 2, " ####  ##  #### ");
 	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f - 2, ALTURA_TELA *0.40f + 3, "  #    ######    # ");
@@ -239,7 +365,7 @@ void Menu(int escolhaMenu)
 		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f + 1, ALTURA_TELA * 0.45f + 2, ConsoleColor::Black, ConsoleColor::White, "SAIR");
 		break;
 	case ESCOLHA_MENU_SAIR:
-		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f, ALTURA_TELA * 0.45f, ConsoleColor::Black, ConsoleColor::White, "INICIAR");	
+		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f, ALTURA_TELA * 0.45f, ConsoleColor::Black, ConsoleColor::White, "INICIAR");
 		ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA *0.45f + 1, ALTURA_TELA * 0.45f + 2, SELECTED_BACKGROUND_COLOR, SELECTED_FONTE_COLOR, "SAIR");
 		break;
 	}
