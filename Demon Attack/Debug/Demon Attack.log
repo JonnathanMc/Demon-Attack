@@ -1,28 +1,33 @@
-﻿Build started 07/06/2015 21:06:47.
-     1>Project "C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Demon Attack\Demon Attack.vcxproj" on node 2 (Build target(s)).
+﻿Build started 09/06/2015 22:20:28.
+     1>Project "C:\Users\Jonnathan\documents\visual studio 2013\Projects\Demon Attack\Demon Attack\Demon Attack.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /analyze- /errorReport:prompt /clr:nostdlib Source.cpp
          Source.cpp
-     1>Source.cpp(54): warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(62): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
-     1>Source.cpp(68): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(72): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(76): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(338): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(339): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(340): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(341): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(342): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(364): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(365): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(368): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>Source.cpp(369): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(49): warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(101): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
+     1>Source.cpp(160): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(353): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>Source.cpp(372): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>Source.cpp(594): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(596): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(598): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(600): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(148): warning C4101: 'numero' : unreferenced local variable
+     1>Source.cpp(713): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(714): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(715): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(716): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(717): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(739): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(740): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(743): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+     1>Source.cpp(744): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Debug\Demon Attack.exe" /INCREMENTAL /NOLOGO /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Debug\Demon Attack.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 Debug\Source.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Jonnathan\documents\visual studio 2013\Projects\Demon Attack\Debug\Demon Attack.exe" /INCREMENTAL /NOLOGO /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Jonnathan\documents\visual studio 2013\Projects\Demon Attack\Debug\Demon Attack.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 Debug\Source.obj
          "Debug\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
-         Demon Attack.vcxproj -> C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Debug\Demon Attack.exe
-     1>Done Building Project "C:\Users\Jonnathan\Documents\Visual Studio 2013\Projects\Demon Attack\Demon Attack\Demon Attack.vcxproj" (Build target(s)).
+         Demon Attack.vcxproj -> C:\Users\Jonnathan\documents\visual studio 2013\Projects\Demon Attack\Debug\Demon Attack.exe
+     1>Done Building Project "C:\Users\Jonnathan\documents\visual studio 2013\Projects\Demon Attack\Demon Attack\Demon Attack.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.34
+Time Elapsed 00:00:01.20

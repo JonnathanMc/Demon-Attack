@@ -4,23 +4,11 @@
 
 using namespace System;
 
-struct Bala{
-	int x;
-	int y;
-	bool balaEmMovimento = false;
-	bool balaNoCano = true;
-};
-struct Inimigo{
-	bool inimigoAtivo = true;
-	int x, y, yInicial, direcaoY = 1, direcaoX = 1;
-	time_t proximaAtualizacaoInimigo = clock();
-	int vidas = 3;
-};
-
 #define ESTADO_JOGO_MENU 0
 #define ESTADO_JOGO_GAMEPLAY 1
 #define ESTADO_JOGO_RANKING 2
 #define ESTADO_JOGO_GAMEOVER 3
+#define ESTADO_JOGO_WIN 4
 
 #define ESCOLHA_MENU_INICIAR 0
 #define ESCOLHA_MENU_SAIR 1
@@ -28,7 +16,9 @@ struct Inimigo{
 #define SELECTED_FONTE_COLOR ConsoleColor::Green
 #define SELECTED_BACKGROUND_COLOR ConsoleColor::Blue
 
-#define QUANTIDADE_INIMIGOS 3
+#define VIDA_INIMIGOS_FASE_1 1
+#define VIDA_INIMIGOS_FASE_2 2
+#define VIDA_INIMIGOS_FASE_3 3
 
 #define LARGURA_TELA 145
 #define ALTURA_TELA 70
@@ -38,43 +28,80 @@ void Menu(int escolhaMenu);
 int MenuOpcoesSelecao(int opcao, ConsoleKeyInfo tecla);
 void CorConsolePadrao();
 void barraInferior();
+void imprimirInimigo(int posX, int posY, int direcaoY, int fase);
+void imprimirPersonagem(int posX, int posY);
+
+
+int aux = 0, direcaoAleatoria;
+float tempoAleatorio = 0, tempoDecorrido = 0;
+time_t proximaAtualizacaoTempob = clock();
+int QUANTIDADE_INIMIGOS = 3;
 
 int main()
 {
+	struct Bala{
+		int x;
+		int y;
+		bool balaEmMovimento = false;
+		bool balaNoCano = true;
+	};
+	struct Player{
+		int x = Console::WindowWidth * 0.5f;
+		int y = ALTURA_TELA - 5;
+		bool vivo = true;
+		int vidas = 3;
+	};
+	struct Inimigo{
+		bool inimigoAtivo = true;
+		int x, y, yInicial, direcaoY = 1, direcaoX = 1;
+		int vidas = 3;
+		float tempoDecorrido = 0;
+		bool atirar = false;
+
+		time_t proximaAtualizacaoInimigoX = clock();
+		time_t proximaAtualizacaoInimigoY = clock();
+		time_t tempoProximoMovimento = clock();
+
+		struct Projetil{
+			int x, y;
+			bool projetilEmMovimento = false;
+		};
+		Projetil projetil;
+		int atirador = 0;
+		struct Aux{
+			time_t proximoTiroInimigo = clock();
+			float contadorTempoTiro = 0;		
+			bool auxTiroInimigo = false;
+		};
+		Aux aux;
+	};
+
 	struct Bala projetil;
-	struct Inimigo inimigo[QUANTIDADE_INIMIGOS];
+	struct Inimigo inimigo[4];
+	struct Inimigo enemy;
+	struct Player player;
 
-
+	int fase = 1;
 	int pontos = 0;
 	bool noInimigo = false;
-
+	bool iniciarFase = true;
 	int estadoJogo = ESTADO_JOGO_MENU;
 	int escolhaMenu = ESCOLHA_MENU_INICIAR;
-	int balasAtiradas = 0, balasDestruidas = 0, balasAtivas = 0;
-	int jogador_x = Console::WindowWidth * 0.5f;
-	int jogador_y = ALTURA_TELA - 5;
-	Char desenho_inimigo2 = (Char)9600;
 
-	time_t  proximaAtualizacaoProjetil = clock();
+	time_t proximoTiroInimigo = clock();
+	int auxTiroInimigo = 0;
+	float contadorTempoTiro = 0;
+	int auxPassarFase = 1;
+
+	Char desenho_inimigo2 = (Char)9600;
+	time_t proximaAtualizacaoProjetil = clock(), proximaAtualizacaoTempo = clock();
 
 	array<String^>^ barraInferior = gcnew array<String^>(3);
-	
+
 	srand(time(NULL));
 
-
-
 	////////////////////// INICIO PROCESSAMENTO ///////////////////////////////////////////
-	inimigo[0].x = rand() % (LARGURA_TELA - 11);
-	inimigo[0].y = inimigo[0].yInicial = ALTURA_TELA * 0.5f + 14;
-	inimigo[0].direcaoX = rand() % 2;
 
-	inimigo[1].x = rand() % (LARGURA_TELA - 11);
-	inimigo[1].y = inimigo[1].yInicial = ALTURA_TELA * 0.5f;
-	inimigo[1].direcaoX = rand() % 2;
-
-	inimigo[2].x = rand() % (LARGURA_TELA - 11) ;
-	inimigo[2].y = inimigo[2].yInicial = ALTURA_TELA * 0.5f - 14;
-	inimigo[2].direcaoX = rand() % 2;
 
 	for (int a = 0; a < 3; a++){
 		for (int b = 0; b < LARGURA_TELA; b++){
@@ -117,39 +144,102 @@ int main()
 
 			//GAMEPLAY
 		case ESTADO_JOGO_GAMEPLAY:
+			if (iniciarFase){
+				int numero;
+				if (fase == 3){
+					QUANTIDADE_INIMIGOS = 4;
+				}
+				else{
+					QUANTIDADE_INIMIGOS = 3;
+				}
+
+				int distancia = 9;
+
+				for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+					inimigo[i].x = rand() % (LARGURA_TELA - 11);
+					inimigo[i].y = inimigo[i].yInicial = ALTURA_TELA * 0.5f + distancia;
+					inimigo[i].direcaoX = rand() % 2;
+					inimigo[i].direcaoY = rand() % 3;
+					inimigo[i].inimigoAtivo = true;
+					inimigo[i].atirar = false;
+					inimigo[i].projetil.projetilEmMovimento = false;
+					distancia -= 9;
+
+					if (fase == 1){
+						inimigo[i].vidas = VIDA_INIMIGOS_FASE_1;
+					}
+					else if (fase == 2){
+						inimigo[i].vidas = VIDA_INIMIGOS_FASE_2;
+					}
+					else if (fase == 3){
+						inimigo[i].vidas = VIDA_INIMIGOS_FASE_3;
+					}
+				}
+				iniciarFase = false;
+				auxTiroInimigo = 0;
+			}
+
 			//// PERSONAGEM
 			if (Console::KeyAvailable)
 			{
 				tecla = Console::ReadKey(true);
-				if (tecla.Key == ConsoleKey::A && jogador_x > 0)
+				if (tecla.Key == ConsoleKey::A && player.x > 0)
 				{
-					jogador_x--;
+					player.x--;
 				}
-				else if (tecla.Key == ConsoleKey::D && jogador_x + 9 < LARGURA_TELA)
+				else if (tecla.Key == ConsoleKey::D && player.x + 9 < LARGURA_TELA)
 				{
-					jogador_x++;
-
+					player.x++;
 				}
 				else if (tecla.Key == ConsoleKey::Spacebar && projetil.balaEmMovimento == false)
 				{
-
 					projetil.balaEmMovimento = true;
 					projetil.balaNoCano = false;
-					projetil.x = jogador_x + 4;
-					projetil.y = jogador_y - 1;
+					projetil.x = player.x + 4;
+					projetil.y = player.y - 1;
+				}
+				else if (tecla.Key == ConsoleKey::Y)
+				{
+					iniciarFase = true;
+				}
+
+				else if (tecla.Key == ConsoleKey::P)
+				{
+					for (int i = 0; i < QUANTIDADE_INIMIGOS - 1; i++){
+						inimigo[i].atirar = true;
+						//inimigo[i].aux.auxTiroInimigo == true;
+					}
+				}
+				else if (tecla.Key == ConsoleKey::O){
+					//inimigo[enemy.atirador].atirar = false;
+					auxTiroInimigo = 0;
+				}
+
+				else if (tecla.Key == ConsoleKey::Z){
+					fase = 1;
+					iniciarFase = true;
+				}
+				else if (tecla.Key == ConsoleKey::X){
+					fase = 2;
+					iniciarFase = true;
+				}
+				else if (tecla.Key == ConsoleKey::C){
+					fase = 3;
+					iniciarFase = true;
+				}
+				else if (tecla.Key == ConsoleKey::J){
+					player.vivo = false;
 				}
 			}
 
 			// PROJETILLLLL ///////////////////////////////////
 			if (projetil.balaEmMovimento)
 			{
+				if (clock() > proximaAtualizacaoProjetil){
+					projetil.y -= 2;
+					proximaAtualizacaoProjetil = clock() + 20;
+				}
 
-				/*if (clock() > proximaAtualizacaoProjetil){
-					projetil.y -= 1;
-					proximaAtualizacaoProjetil = clock() + 50;
-				}*/
-				projetil.y -= 2;
-				
 				if (projetil.y == 0)
 				{
 					projetil.balaEmMovimento = false;
@@ -158,44 +248,65 @@ int main()
 			else
 				projetil.balaNoCano = true;
 
-			//INIMIGO // DIREЧУO: 0 -> BAIXO       1 -> RETO        2 -> CIMA
+			//INIMIGO  ////////////////////////////////////////////////////////
+
+			//// MOVIMENTACAO EM X
 			for (int x = 0; x < QUANTIDADE_INIMIGOS; x++){
-				
+
 				if (inimigo[x].x + 10 >= LARGURA_TELA){
 					inimigo[x].direcaoX = 0;
 				}
 				if (inimigo[x].x <= 1){
 					inimigo[x].direcaoX = 1;
 				}
-
-				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoX == 1){
-					inimigo[x].x++;
-					//inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
+				if (inimigo[x].atirar == false){
+					if (clock() > inimigo[x].proximaAtualizacaoInimigoX && inimigo[x].direcaoX == 1){
+						inimigo[x].x += 1;
+						inimigo[x].proximaAtualizacaoInimigoX = clock() + 30;
+					}
+					if (clock() > inimigo[x].proximaAtualizacaoInimigoX && inimigo[x].direcaoX == 0){
+						inimigo[x].x -= 1;
+						inimigo[x].proximaAtualizacaoInimigoX = clock() + 30;
+					}
 				}
-				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoX == 0){
-					inimigo[x].x--;
-					//inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
-				}
 
+				if (clock() > inimigo[x].tempoProximoMovimento){
+					inimigo[x].tempoProximoMovimento = clock() + 750;
+					inimigo[x].tempoDecorrido++;
+
+				}
+				if (inimigo[x].tempoDecorrido >= ((rand() % 2 + 1) - ((rand() % 6 + 1) / 10.0f))){
+					inimigo[x].direcaoX = rand() % 2;
+					if (x == 0){
+						if (inimigo[x].x < player.x && inimigo[x].direcaoX == 0){
+							if (rand() % 10 >= 4)
+								inimigo[x].direcaoX = 1;
+						}
+						else if (inimigo[x].x > player.x && inimigo[x].direcaoX == 1)
+						{
+							if (rand() % 10 >= 4)
+								inimigo[x].direcaoX = 0;
+						}
+					}
+					inimigo[x].tempoDecorrido = 0;
+				}
 
 				///////// MOVIMENTACAO EM Y //
+				// DIREЧУO: 0 -> BAIXO       1 -> RETO        2 -> CIMA
 
-				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoY == 0){ ///BAIXO
-					inimigo[x].y++;
-					inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
-					
-					
-				}
+				if (inimigo[x].atirar == false){
+					if (clock() > inimigo[x].proximaAtualizacaoInimigoY && inimigo[x].direcaoY == 0){ ///BAIXO
+						inimigo[x].y++;
+						inimigo[x].proximaAtualizacaoInimigoY = clock() + 30;
+					}
+					if (inimigo[x].direcaoY == 1){  //RETO
+						inimigo[x].direcaoY = rand() % 3;
+					}
+					if (clock() > inimigo[x].proximaAtualizacaoInimigoY && inimigo[x].direcaoY == 2){  ///CIMA
+						inimigo[x].y--;
+						inimigo[x].proximaAtualizacaoInimigoY = clock() + 30;
 
-				if (inimigo[x].direcaoY == 1){  //RETO
-					inimigo[x].direcaoY = rand() % 2;
-					
-				}
-
-				if (clock() > inimigo[x].proximaAtualizacaoInimigo && inimigo[x].direcaoY == 2){  ///CIMA
-					inimigo[x].y--;
-					inimigo[x].proximaAtualizacaoInimigo = clock() + 30;
-					
+					}
 				}
 
 				if (inimigo[x].y <= inimigo[x].yInicial - 4){
@@ -204,32 +315,190 @@ int main()
 				else if (inimigo[x].y >= inimigo[x].yInicial + 4){
 					inimigo[x].direcaoY = 2;
 				}
-				
-
-				
 			}
 
+			// COLISУO INIMIGO
 			if (projetil.balaEmMovimento){
 				for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
 					if (inimigo[i].inimigoAtivo){
 						if (projetil.x >= inimigo[i].x && projetil.x <= inimigo[i].x + 9){
-							if (projetil.y <= inimigo[i].y && projetil.y >= inimigo[i].y-4){
-								
+							if (projetil.y <= inimigo[i].y && projetil.y >= inimigo[i].y - 4){
 								projetil.balaEmMovimento = false;
 								inimigo[i].vidas--;
-								pontos++;
-							
+								pontos += 10;
 							}
 						}
-					}	
-					if (inimigo[i].vidas <= 0)
+					}
+					if (inimigo[i].vidas <= 0){
 						inimigo[i].inimigoAtivo = false;
+						inimigo[i].atirar = false;
+					}
+
 				}
 			}
+			//// TIRO DO INIMIGO
 			
 			
+			for (int j = 0; j < QUANTIDADE_INIMIGOS - 1; j++){
 
-			////////////////////////// DESENHA ////////////////////////////////////////////////////
+				if (inimigo[j].inimigoAtivo){
+
+					if ((inimigo[j].x > (player.x - 5) && inimigo[j].x < (player.x + 10)) 
+						&& inimigo[j].aux.auxTiroInimigo == false){
+
+						inimigo[j].aux.auxTiroInimigo = true;
+					}
+					if (inimigo[j].aux.auxTiroInimigo == true){
+						if (clock() > inimigo[j].aux.proximoTiroInimigo){
+							inimigo[j].aux.contadorTempoTiro += 0.1;
+							inimigo[j].aux.proximoTiroInimigo = clock() + 100;
+						}
+						if (j == 2){
+							if (inimigo[j].aux.contadorTempoTiro >= 1.2f){
+								inimigo[j].aux.contadorTempoTiro = 0;
+								inimigo[j].atirar = true;
+							}
+						}
+						else{
+							if (inimigo[j].aux.contadorTempoTiro >= 0.8f){
+								inimigo[j].aux.contadorTempoTiro = 0;
+								inimigo[j].atirar = true;
+							}
+						}
+					}
+					//
+					if (inimigo[j].atirar == true){
+						if (clock() > inimigo[j].aux.proximoTiroInimigo){
+							inimigo[j].aux.contadorTempoTiro += 0.1;
+							inimigo[j].aux.proximoTiroInimigo = clock() + 100;
+						}
+						if (inimigo[j].aux.contadorTempoTiro >= 0.1f){
+							inimigo[j].projetil.projetilEmMovimento = true;
+							inimigo[j].aux.contadorTempoTiro = 0;
+							inimigo[j].atirar = false;
+						}
+						inimigo[j].projetil.x = inimigo[j].x + 3;
+						inimigo[j].projetil.y = inimigo[j].y + 1;
+					}
+				}
+
+				if (inimigo[j].projetil.projetilEmMovimento){
+					inimigo[j].projetil.y++;
+				}
+				if (inimigo[j].projetil.projetilEmMovimento == true && inimigo[j].projetil.y >= ALTURA_TELA - 5){
+					inimigo[j].projetil.projetilEmMovimento = false;
+					inimigo[j].aux.auxTiroInimigo = false;
+					
+				}
+
+				//// COLISAO DA BALA DO INIMIGO NO PLAYER
+				if (inimigo[j].projetil.projetilEmMovimento)
+				{
+					if ((inimigo[j].projetil.x > player.x || inimigo[j].projetil.x + 4 > player.x)
+						&& inimigo[j].projetil.x < player.x + 9)
+					{
+						if (inimigo[j].projetil.y > player.y - 3 && inimigo[j].projetil.y < player.y)
+						{
+							inimigo[j].projetil.projetilEmMovimento = false;
+							player.vidas--;
+						}
+					}
+				}
+				
+			}
+
+			/*
+			if (inimigo[0].inimigoAtivo){
+
+				if ((inimigo[0].x > (player.x - 5) && inimigo[0].x < (player.x + 10)) && auxTiroInimigo == 0){
+					auxTiroInimigo = 1;
+
+				}
+				if (auxTiroInimigo == 1){
+					if (clock() > proximoTiroInimigo){
+						contadorTempoTiro += 0.1;
+						proximoTiroInimigo = clock() + 100;
+					}
+					if (contadorTempoTiro >= 0.7f){
+						contadorTempoTiro = 0;
+						inimigo[0].atirar = true;
+					}
+				}
+				if (inimigo[0].atirar == true){
+					if (clock() > proximoTiroInimigo){
+						contadorTempoTiro += 0.1;
+						proximoTiroInimigo = clock() + 100;
+					}
+					if (contadorTempoTiro >= 0.1f){
+						inimigo[0].projetil.projetilEmMovimento = true;
+						contadorTempoTiro = 0;
+						inimigo[0].atirar = false;
+					}
+					inimigo[0].projetil.x = inimigo[0].x + 3;
+					inimigo[0].projetil.y = inimigo[0].y + 1;
+				}
+			}
+
+			if (inimigo[0].projetil.projetilEmMovimento){
+				inimigo[0].projetil.y++;
+			}
+			if (inimigo[0].projetil.projetilEmMovimento == true && inimigo[0].projetil.y >= ALTURA_TELA - 5){
+				inimigo[0].projetil.projetilEmMovimento = false;
+				auxTiroInimigo = 0;
+				//inimigo[0].atirar = false;
+			}
+
+			//// COLISAO DA BALA DO INIMIGO NO PLAYER
+			if (inimigo[0].projetil.projetilEmMovimento)
+			{
+				if ((inimigo[0].projetil.x > player.x || inimigo[0].projetil.x + 4 > player.x)
+					&& inimigo[0].projetil.x < player.x + 9)
+				{
+					if (inimigo[0].projetil.y > player.y - 3 && inimigo[0].projetil.y < player.y)
+					{
+						inimigo[0].projetil.projetilEmMovimento = false;
+						player.vidas--;
+					}
+				}
+			}
+			*/ ////////////
+
+			/// GERENCIAMENTO
+
+			if (player.vidas <= 0)
+				player.vivo = false;
+
+			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+				if (i == enemy.atirador){
+					if (!inimigo[i].inimigoAtivo && inimigo[i].projetil.projetilEmMovimento == false){
+						enemy.atirador++;
+						break;
+					}
+				}
+			}
+			if (!player.vivo)
+				estadoJogo = ESTADO_JOGO_GAMEOVER;
+
+			auxPassarFase = 1;
+			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++)
+			{
+				if (inimigo[i].inimigoAtivo == true)
+					auxPassarFase = 0;
+			}
+			if (auxPassarFase == 1){
+				if (fase == 1)
+					fase = 2;
+				else if (fase == 2)
+					fase = 3;
+				else if (fase == 3)
+					estadoJogo = ESTADO_JOGO_WIN;
+
+				if (fase == 1 || fase == 2 || fase == 3)
+					iniciarFase = true;
+				player.vidas++;
+			}
+
+			//////////////////////////////////////////// DESENHA ////////////////////////////////////////////////////
 			CorConsolePadrao();
 
 			Console::Clear();
@@ -244,11 +513,7 @@ int main()
 			Console::Write(barraInferior[2]);
 
 			// DESENHA O PERSONAGEM
-			Console::BackgroundColor = ConsoleColor::Black;
-			Console::ForegroundColor = ConsoleColor::Magenta;
-			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y - 2, "   л л  ");
-			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y - 1, "  лл лл");
-			ConsoleHelper::ImprimirASCIIExtended(jogador_x, jogador_y, " лл   лл ");
+			imprimirPersonagem(player.x, player.y);
 
 			if (projetil.balaEmMovimento)
 			{
@@ -262,56 +527,54 @@ int main()
 			if (projetil.balaNoCano)
 			{
 				Console::ForegroundColor = ConsoleColor::White;
-				Console::SetCursorPosition(jogador_x + 4, jogador_y - 2);
+				Console::SetCursorPosition(player.x + 4, player.y - 2);
 				ConsoleHelper::ImprimirASCIIExtended("л");
-				Console::SetCursorPosition(jogador_x + 4, jogador_y - 1);
+				Console::SetCursorPosition(player.x + 4, player.y - 1);
 				ConsoleHelper::ImprimirASCIIExtended("л");
 			}
 
 			// DESENHA O INIMIGO
-			
+
+
 			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
 				if (inimigo[i].inimigoAtivo){
-					Console::ForegroundColor = ConsoleColor::Green;
-					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 3);
-					ConsoleHelper::ImprimirASCIIExtended("    л л   ");
-					Console::ForegroundColor = ConsoleColor::Red;
-					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 2);
-					ConsoleHelper::ImprimirASCIIExtended(" ллл л ллл");
-					//Console::ForegroundColor = ConsoleColor::DarkMagenta;
-					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y - 1);
-					ConsoleHelper::ImprimirASCIIExtended(" л ллллл л");
-					//Console::ForegroundColor = ConsoleColor::Green;
-					Console::SetCursorPosition(inimigo[i].x, inimigo[i].y);
-					ConsoleHelper::ImprimirASCIIExtended("    л л   ");
+
+					imprimirInimigo(inimigo[i].x, inimigo[i].y, inimigo[i].direcaoY, fase);
+
 				}
 			}
+			// PROJETIL DO INIMIGO
+			for (int j = 0; j < QUANTIDADE_INIMIGOS - 1; j++)
+			{
+				if (inimigo[j].projetil.projetilEmMovimento == true){
+
+					Console::ForegroundColor = ConsoleColor::Cyan;
+					Console::SetCursorPosition(inimigo[j].projetil.x, inimigo[j].projetil.y);
+					if (fase == 1)
+						ConsoleHelper::ImprimirASCIIExtended("л л");
+					if (fase >= 2)
+						ConsoleHelper::ImprimirASCIIExtended("л л л");
+				}
+			}
+
 			Console::SetCursorPosition(10, 10);
-			Console::Write(" " + pontos);
-		
+			Console::Write("Pontos: " + pontos);
 
-			for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
+			Console::SetCursorPosition(10, 11);
+			Console::Write("Vidas: " + player.vidas);
+
+			//////////// TESTES
+
+			/*for (int i = 0; i < QUANTIDADE_INIMIGOS; i++){
 				if (inimigo[i].inimigoAtivo){
-					/*Console::SetCursorPosition(inimigo[i].x - 8, inimigo[i].y - 5);
-					Console::Write("YINI: " + inimigo[i].yInicial);*/
-					Console::SetCursorPosition(inimigo[i].x + 1, inimigo[i].y - 6);
-					Console::Write("DireчуoY: " + inimigo[i].direcaoY);
-					/*Console::SetCursorPosition(inimigo[i].x - 8, inimigo[i].y - 3);
+
+					Console::ForegroundColor = ConsoleColor::Cyan;
+					Console::SetCursorPosition(inimigo[i].x + 1, inimigo[i].y - 8);
 					Console::Write("Vidas: " + inimigo[i].vidas);
-					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y-2);
-					Console::Write(inimigo[i].x);
-					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y - 1);
-					Console::Write(inimigo[i].y);
-					Console::SetCursorPosition(inimigo[i].x - 3, inimigo[i].y );
-					Console::Write(inimigo[i].inimigoAtivo);
-					*/
 				}
-			}
+			}*/
 
-
-
-
-			Threading::Thread::Sleep(16);
+			Threading::Thread::Sleep(10);
 			break;
 
 		case ESTADO_JOGO_RANKING:
@@ -325,14 +588,126 @@ int main()
 				estadoJogo = ESTADO_JOGO_MENU;
 			}
 			break;
+
+		case ESTADO_JOGO_GAMEOVER:
+			Console::Clear();
+			Console::SetCursorPosition(LARGURA_TELA * 0.5f, 10);
+			Console::Write("GameOver");
+			Console::SetCursorPosition((LARGURA_TELA * 0.5f) - 20, 30);
+			Console::WriteLine("Deseja jogar novamente?: ");
+			Console::SetCursorPosition((LARGURA_TELA * 0.5f) + 5, 29);
+			Console::WriteLine("S: Sim ");
+			Console::SetCursorPosition((LARGURA_TELA * 0.5f) + 5, 31);
+			Console::WriteLine("N: Nуo ");
+
+			tecla = Console::ReadKey(true);
+			if (tecla.Key == ConsoleKey::S)
+			{
+				estadoJogo = ESTADO_JOGO_GAMEPLAY;
+				fase = 1;
+				player.vidas = 3;
+				player.vivo = true;
+				iniciarFase = true;
+				pontos = 0;
+			}
+			if (tecla.Key == ConsoleKey::N)
+			{
+				exit(0);
+			}
+			break;
+		case ESTADO_JOGO_WIN:
+			Console::Clear();
+			Console::SetCursorPosition(10, 10);
+			Console::Write("YOU WIN");
+			Console::SetCursorPosition(10, 30);
+			Console::WriteLine("Deseja jogar novamente?: ");
+			Console::SetCursorPosition(10, 31);
+			Console::WriteLine("S: Sim ");
+			Console::SetCursorPosition(10, 32);
+			Console::WriteLine("N: Nуo ");
+
+			tecla = Console::ReadKey(true);
+			if (tecla.Key == ConsoleKey::S)
+			{
+				estadoJogo = ESTADO_JOGO_GAMEPLAY;
+				fase = 1;
+				player.vidas = 3;
+				player.vivo = true;
+				iniciarFase = true;
+				pontos = 0;
+			}
+			if (tecla.Key == ConsoleKey::N)
+			{
+				exit(0);
+			}
+			break;
 		}
+
 	}
 
-	//system("pause");
+	
 	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void imprimirInimigo(int posX, int posY, int direcaoY, int fase)
+{
+	ConsoleColor corPrincipal;
+	ConsoleColor corSecundaria;
+	if (fase == 1){
+		corPrincipal = ConsoleColor::Red;
+		corSecundaria = ConsoleColor::Green;
+	}
+	else if (fase == 2){
+		corPrincipal = ConsoleColor::Cyan;
+		corSecundaria = ConsoleColor::Blue;
+	}
+	else if (fase == 3){
+		corPrincipal = ConsoleColor::Green;
+		corSecundaria = ConsoleColor::Red;
+	}
+	if (direcaoY == 2){
+		Console::ForegroundColor = corSecundaria;
+		Console::SetCursorPosition(posX, posY - 3);
+		ConsoleHelper::ImprimirASCIIExtended("    л л   ");
+		Console::ForegroundColor = corPrincipal;
+		Console::SetCursorPosition(posX, posY - 2);
+		ConsoleHelper::ImprimirASCIIExtended(" ллл л ллл");
+		//Console::ForegroundColor = ConsoleColor::DarkMagenta;
+		Console::SetCursorPosition(posX, posY - 1);
+		ConsoleHelper::ImprimirASCIIExtended(" л ллллл л");
+		//Console::ForegroundColor = ConsoleColor::Green;
+		Console::SetCursorPosition(posX, posY);
+		ConsoleHelper::ImprimirASCIIExtended("л   л л   л");
+	}
+	else if (direcaoY == 0)
+	{
+		Console::ForegroundColor = corSecundaria;
+		Console::SetCursorPosition(posX, posY - 4);
+		ConsoleHelper::ImprimirASCIIExtended("л         л");
+		Console::SetCursorPosition(posX, posY - 3);
+		ConsoleHelper::ImprimirASCIIExtended(" л  л л  л");
+		Console::ForegroundColor = corPrincipal;
+		Console::SetCursorPosition(posX, posY - 2);
+		ConsoleHelper::ImprimirASCIIExtended(" ллл л ллл");
+		Console::SetCursorPosition(posX, posY - 1);
+		ConsoleHelper::ImprimirASCIIExtended("   ллллл  ");
+		Console::SetCursorPosition(posX, posY);
+		ConsoleHelper::ImprimirASCIIExtended("    л л   ");
+	
+	}
+	
+}
+void imprimirPersonagem(int posX, int posY)
+{
+	Console::BackgroundColor = ConsoleColor::Black;
+	Console::ForegroundColor = ConsoleColor::Magenta;
+	ConsoleHelper::ImprimirASCIIExtended(posX, posY - 2, "   л л  ");
+	ConsoleHelper::ImprimirASCIIExtended(posX, posY - 1, "  лл лл");
+	ConsoleHelper::ImprimirASCIIExtended(posX, posY, " лл   лл ");
+}
+
 void Logo()
 {
 	ConsoleHelper::ImprimirASCIIExtended(LARGURA_TELA * 0.25f, ALTURA_TELA *0.10f + 1, "  ____                                  _   _   _             _    ");
